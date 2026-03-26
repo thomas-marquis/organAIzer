@@ -1,7 +1,7 @@
 import os
 from functools import lru_cache
 
-from notion_client import APIErrorCode, APIResponseError, Client
+from notion_client import Client
 from todoist_api_python.api import TodoistAPI
 
 
@@ -33,15 +33,11 @@ def get_todoist_structure_tree() -> dict:
     # Link nodes to their parents
     for p in projects:
         node = nodes[p.id]
-        if p.parent_id:
-            # Check if parent exists in our nodes list (it should)
-            if p.parent_id in nodes:
-                nodes[p.parent_id]["children"].append(node)
-            else:
-                # If parent_id is set but not found, attach to root as fallback
+        match p.parent_id:
+            case str(parent_id) if parent_id in nodes:
+                nodes[parent_id]["children"].append(node)
+            case str(_) | None:
                 root["children"].append(node)
-        else:
-            root["children"].append(node)
 
     return {
         "projects_tree": root,
@@ -84,6 +80,7 @@ def _read_content(content_data: dict) -> str:
                 title = f"{title} ({description})"
             return f"[{title}]({href})"
 
+
 def _extract_from_rich_text(block_data: dict) -> str:
     rich_text = block_data["rich_text"]
     if not rich_text:
@@ -109,13 +106,13 @@ def _get_block_content(block: dict) -> str:
             return block["to_do"]["text"][0]["plain_text"]
     return ""
 
+
 def get_notion_page_content(page_id: str) -> str:
     """Returns the content of a Notion page in Markdown."""
     notion = notion_client()
     response = notion.blocks.children.list(block_id=page_id)
     contents = [_get_block_content(block) for block in response["results"]]
     return "\n".join(contents)
-
 
 
 def _get_title(properties: dict) -> str:
@@ -154,59 +151,6 @@ def search_notion_pages(query: str, max_pages: int = 10) -> list[dict]:
         for res
         in results
     ]
-
-# understand user's system
-
-
-class GetToDoListStructureTool:
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        pass
-
-
-class GetEMailLabelsTool:
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        pass
-
-
-class GetNotesStructureTool:
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        pass
-
-
-# get user content
-
-
-class SearchTasksTool:
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        pass
-
-
-class ListEMailsTool:
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        pass
-
-
-class GetCalendarTool:
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        pass
 
 
 class SearchNotesTool:

@@ -1,6 +1,7 @@
-from typing import Iterator
+from typing import Iterator, Final
 
 from deepagents import create_deep_agent
+from langchain_core.chat_models import BaseChatModel
 from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
 
 from src.agent.tools import get_todoist_structure_tree, get_tasks_by_project, search_notion_pages, \
@@ -16,14 +17,10 @@ Your primary goal is to help him to get more oganized and efficient and to set p
 
 
 
-class Agent:
-    def __init__(self, mistral_api_key: str) -> None:
-        self._llm = ChatMistralAI(
-            mistral_api_key=mistral_api_key,
-            model="mistral-large-latest",
-            temperature=0.1,
-        )
-        self._agent = create_deep_agent(
+class AgentImpl:
+    def __init__(self, llm: BaseChatModel) -> None:
+        self._llm: Final = llm
+        self._agent: Final = create_deep_agent(
             model=self._llm,
             system_prompt=main_prompt,
             tools=[

@@ -1,0 +1,7 @@
+
+
+infrastructure:
+  mistral:
+    api_key: ""
+    model: "mistral-large-latest"
+    temperature: 0.1
