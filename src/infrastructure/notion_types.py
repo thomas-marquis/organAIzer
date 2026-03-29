@@ -16,15 +16,25 @@ class NotionDatabaseParent(TypedDict):
 type NotionParent = NotionPageParent | NotionDatabaseParent
 
 
+class NotionTextAnnotation(TypedDict, total=False):
+    bold: bool
+    italic: bool
+    strikethrough: bool
+    underline: bool
+    code: bool
+    color: Literal["default", "gray", "brown", "orange", "yellow", "green", "blue", "purple", "pink", "red"]
+
+
 class NotionText(TypedDict):
     content: str
-    link: str | None
+    link: dict[str, str] | None
 
 
 class NotionRichText(TypedDict):
     type: Literal["text"]
-    Text: NotionText
+    text: NotionText
     plain_text: str
+    annotations: NotionTextAnnotation
 
 
 class NotionDate(TypedDict, total=False):
