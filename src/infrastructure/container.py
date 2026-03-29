@@ -1,11 +1,11 @@
-from dependency_injector.providers import Singleton, Provider, Dependency, Configuration
+from dependency_injector.providers import Singleton, Provider, Configuration
 from dependency_injector.containers import DeclarativeContainer
 from langchain.chat_models import BaseChatModel
 
-from langchain_mistralai import ChatMistralAI, MistralAIEmbeddings
+from langchain_mistralai import ChatMistralAI
 
 from .notion_repository import NotionNoteRepository
-from .todoist_repository import TodoistTaskRepository, TodoistProjectRepository
+from .todoist_repository import TodoistTaskRepository
 
 from src.domain import NoteRepository, TaskRepository
 

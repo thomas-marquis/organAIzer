@@ -1,15 +1,16 @@
-from src.agent.agent import Agent
 from src.app import app
-import dotenv
 import click
 import os
-import uvicorn
 
-dotenv.load_dotenv()
+from src.container import AppContainer
+from src.controller.rest.app import serve
+
 
 @click.group()
 def cli():
-    pass
+    container = AppContainer()
+    container.config.from_yaml("config/config.yaml")
+
 
 @cli.command()
 @click.option("-m", "--message", type=str)
@@ -26,6 +27,8 @@ def run(message: str) -> None:
 def serve(host: str, port: int) -> None:
     """Start the FastAPI server"""
     uvicorn.run(app, host=host, port=port)
+
+
 
 if __name__ == "__main__":
     cli()

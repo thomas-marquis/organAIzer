@@ -5,7 +5,7 @@ from dependency_injector.wiring import Provide, inject
 
 from fastapi import APIRouter, Depends
 
-from agent import Agent
+from src.agents.general_purpose import GPAgent
 from .schemas import ChatRequest, ChatResponse
 from ..container import ControllerContainer
 
@@ -15,10 +15,10 @@ router: Final = APIRouter()
 @router.post("/chat")
 @inject
 async def chat(
-        agent: Annotated[Agent, Depends(Provide[ControllerContainer.agent])],
+        general_purpose_agent: Annotated[GPAgent, Depends(Provide[ControllerContainer.general_purpose_agent])],
 ) -> ChatResponse:
     try:
-        response = await agent.run(request.message)
+        response = await general_purpose_agent.run(request.message)
     except Exception as e:
         pass
     return None

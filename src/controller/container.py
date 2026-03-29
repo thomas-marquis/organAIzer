@@ -1,10 +1,10 @@
 from dependency_injector.containers import DeclarativeContainer
 from dependency_injector.providers import Configuration, Dependency, Provider
 
-from src.agent import Agent
+from src.agents.general_purpose import GPAgent
 
 
 class ControllerContainer(DeclarativeContainer):
     config = Configuration()
 
-    agent: Provider[Agent] = Dependency(instance_of=Agent)
+    general_purpose_agent: Provider[GPAgent] = Dependency(instance_of=GPAgent)

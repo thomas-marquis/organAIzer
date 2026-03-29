@@ -1,12 +1,10 @@
-import os
 from datetime import datetime
 from typing import Final
 
 from notion_client import AsyncClient
 
-from ..domain import Note, NoteRepository, TechnicalError
-
 from src.common import get_logger
+from ..domain import Note, NoteRepository, NoteContent
 
 logger = get_logger()
 
@@ -45,33 +43,14 @@ class NotionNoteRepository(NoteRepository):
             logger.error(f"Error getting note by ID: {e}")
             return None
 
-    async def get_all_notes(self) -> list[Note]:
-        try:
-            response = await self._client.search(
-                filter={"property": "object", "value": "page"},
-                page_size=50,
-                sort={"timestamp": "last_edited_time", "direction": "descending"}
-            )
-
-            notes = []
-            for page in response["results"]:
-                note = self._convert_notion_page(page)
-                note.content = self._get_page_content(page["id"])
-                notes.append(note)
-
-            return notes
-        except Exception as e:
-            logger.error(f"Error getting all notes: {e}")
-            return []
-
-
+    async def get_note_content(self, note_id: str) -> NoteContent:
+        pass
 
     def _map_page_to_note(self, page: dict) -> Note:
         """Convert Notion page to domain Note entity"""
         return Note(
-            id=page["id"],
+            id_=page["id"],
             title=self._extract_title(page["properties"]),
-            content="",  # Content will be fetched separately
             created_at=datetime.fromisoformat(page["created_time"]),
             updated_at=datetime.fromisoformat(page["last_edited_time"]),
             tags=self._extract_tags(page["properties"])

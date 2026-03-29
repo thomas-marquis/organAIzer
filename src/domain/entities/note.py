@@ -5,7 +5,12 @@ import datetime as dt
 class Note:
     id_: str
     title: str
-    content: str
     created_at: dt.datetime
     updated_at: dt.datetime
     tags: list[str] | None = None
+
+
+@dataclass
+class NoteContent:
+    note_id: str
+    markdown: str

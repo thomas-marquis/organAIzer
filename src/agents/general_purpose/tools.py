@@ -1,3 +1,4 @@
+import asyncio
 import os
 from functools import lru_cache
 
@@ -5,49 +6,52 @@ from notion_client import Client
 from todoist_api_python.api import TodoistAPI
 
 
-@lru_cache
-def notion_client() -> Client:
-    return Client(auth=os.environ["NOTION_TOKEN"])
+from langchain.tools import tool, ToolRuntime
+
+from dataclasses import dataclass
+from src.domain import NoteRepository, TaskRepository, Task, TasksService
+from src.common import get_logger
+from . import renderers
+
+logger = get_logger()
 
 
-@lru_cache
-def todoist_client() -> TodoistAPI:
-    return TodoistAPI(os.environ["TODOIST_TOKEN"])
+
+@dataclass
+class ToolContext:
+    note_repository: NoteRepository
+    task_repository: TaskRepository
+    task_service: TasksService
 
 
-def get_todoist_structure_tree() -> dict:
+@tool
+async def get_todolists_structure_tree(runtime: ToolRuntime[ToolContext]) -> str:
     """
-    Get the list of the projects in Todoist and all the labels defined by the user.
+    Return the structure of the user's todolists.
+    A user may create multiple nested todolists, each one can contain both tasks and sub-lists.
+    This tool returns only the list tree structure, not the tasks.
+    Use the tool `get_tasks_from_list` to get the tasks for a specific list.
     """
 
-    todoist = todoist_client()
+    try:
+        lists, labels = await asyncio.gather(
+            runtime.context.task_repository.get_all_todolists(),
+            runtime.context.task_repository.get_all_labels(),
+        )
+    except Exception as e:
+        logger.error(e)
+        return f"Error during tool execution: {e}"
 
-    projects_paginator = todoist.get_projects()
-    projects = [p for page in projects_paginator for p in page]
-    nodes = {p.id: {"id": p.id, "name": p.name, "children": []} for p in projects}
-
-    root = {"id": "root", "name": "/", "children": []}
-
-    labels = todoist.get_labels(limit=100)
-
-    # Link nodes to their parents
-    for p in projects:
-        node = nodes[p.id]
-        match p.parent_id:
-            case str(parent_id) if parent_id in nodes:
-                nodes[parent_id]["children"].append(node)
-            case str(_) | None:
-                root["children"].append(node)
-
-    return {
-        "projects_tree": root,
-        "labels": [label.name for label in list(labels)[0]],
-    }
+    return f"## Lists structure:\n{renderers.render_task_lists(lists)}\n\n## Labels:\n{renderers.render_task_labels(labels)}"
 
 
-def get_tasks_by_project(project_id: str) -> list[dict]:
-    """Returns a list of tasks in a project."""
-    todoist = todoist_client()
+
+def get_tasks_by_todolist(project_id: str, recursive: bool = False) -> list[Task]:
+    """Returns all the tasks contained in a todolist.
+
+    The parameter `recursive` controls whether to include sub-todolists tasks or not.
+    """
+
     tasks = todoist.get_tasks(project_id=project_id)
     tasks = [
         {
@@ -127,7 +131,6 @@ def _get_title(properties: dict) -> str:
 
 def search_notion_pages(query: str, max_pages: int = 10) -> list[dict]:
     """Returns a list of pages matching the query."""
-    notion = notion_client()
     response = notion.search(
         query=query,
         page_size=max_pages,
@@ -151,11 +154,3 @@ def search_notion_pages(query: str, max_pages: int = 10) -> list[dict]:
         for res
         in results
     ]
-
-
-class SearchNotesTool:
-    def __init__(self):
-        pass
-
-    def __call__(self):
-        pass
