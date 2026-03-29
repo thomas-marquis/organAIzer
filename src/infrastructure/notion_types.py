@@ -297,7 +297,7 @@ class NotionPage(TypedDict):
     properties: dict[str, NotionPageProperty]
 
 
-################# Bloc ##################
+################# Blocks ##################
 
 
 class BaseNotionBlock(TypedDict):
@@ -308,3 +308,341 @@ class BaseNotionBlock(TypedDict):
     parent: NotionParent
     has_children: bool
     in_trash: bool
+
+
+type NotionColor = Literal[
+    "default", "gray", "brown", "orange", "yellow", "green", "blue", "purple", "pink", "red",
+    "gray_background", "brown_background", "orange_background", "yellow_background", "green_background",
+    "blue_background", "purple_background", "pink_background", "red_background"
+]
+
+
+class NotionEmoji(TypedDict):
+    type: Literal["emoji"]
+    emoji: str
+
+
+type NotionIcon = NotionFileObject | NotionEmoji
+
+
+class NotionParagraphBlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    color: NotionColor
+
+
+class NotionParagraphBlock(BaseNotionBlock):
+    type: Required[Literal["paragraph"]]
+    paragraph: NotionParagraphBlockContent
+
+
+class NotionHeading1BlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    color: NotionColor
+    is_toggleable: bool
+
+
+class NotionHeading1Block(BaseNotionBlock):
+    type: Required[Literal["heading_1"]]
+    heading_1: NotionHeading1BlockContent
+
+
+class NotionHeading2BlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    color: NotionColor
+    is_toggleable: bool
+
+
+class NotionHeading2Block(BaseNotionBlock):
+    type: Required[Literal["heading_2"]]
+    heading_2: NotionHeading2BlockContent
+
+
+class NotionHeading3BlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    color: NotionColor
+    is_toggleable: bool
+
+
+class NotionHeading3Block(BaseNotionBlock):
+    type: Required[Literal["heading_3"]]
+    heading_3: NotionHeading3BlockContent
+
+
+class NotionBulletedListItemBlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    color: NotionColor
+
+
+class NotionBulletedListItemBlock(BaseNotionBlock):
+    type: Required[Literal["bulleted_list_item"]]
+    bulleted_list_item: NotionBulletedListItemBlockContent
+
+
+class NotionNumberedListItemBlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    color: NotionColor
+
+
+class NotionNumberedListItemBlock(BaseNotionBlock):
+    type: Required[Literal["numbered_list_item"]]
+    numbered_list_item: NotionNumberedListItemBlockContent
+
+
+class NotionToDoBlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    color: NotionColor
+    checked: bool
+
+
+class NotionToDoBlock(BaseNotionBlock):
+    type: Required[Literal["to_do"]]
+    to_do: NotionToDoBlockContent
+
+
+class NotionToggleBlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    color: NotionColor
+
+
+class NotionToggleBlock(BaseNotionBlock):
+    type: Required[Literal["toggle"]]
+    toggle: NotionToggleBlockContent
+
+
+class NotionCodeBlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    caption: list[NotionRichText]
+    language: str
+
+
+class NotionCodeBlock(BaseNotionBlock):
+    type: Required[Literal["code"]]
+    code: NotionCodeBlockContent
+
+
+class NotionChildPageBlockContent(TypedDict):
+    title: str
+
+
+class NotionChildPageBlock(BaseNotionBlock):
+    type: Required[Literal["child_page"]]
+    child_page: NotionChildPageBlockContent
+
+
+class NotionChildDatabaseBlockContent(TypedDict):
+    title: str
+
+
+class NotionChildDatabaseBlock(BaseNotionBlock):
+    type: Required[Literal["child_database"]]
+    child_database: NotionChildDatabaseBlockContent
+
+
+class NotionEmbedBlockContent(TypedDict):
+    url: str
+
+
+class NotionEmbedBlock(BaseNotionBlock):
+    type: Required[Literal["embed"]]
+    embed: NotionEmbedBlockContent
+
+
+class NotionMediaBlockContent(TypedDict, total=False):
+    type: Required[Literal["file", "external", "file_upload"]]
+    file: NotionHostedFileRef
+    external: NotionExternalFileRef
+    file_upload: NotionUploadedFileRef
+    caption: list[NotionRichText]
+
+
+class NotionImageBlock(BaseNotionBlock):
+    type: Required[Literal["image"]]
+    image: NotionMediaBlockContent
+
+
+class NotionVideoBlock(BaseNotionBlock):
+    type: Required[Literal["video"]]
+    video: NotionMediaBlockContent
+
+
+class NotionFileBlock(BaseNotionBlock):
+    type: Required[Literal["file"]]
+    file: NotionMediaBlockContent
+
+
+class NotionPdfBlock(BaseNotionBlock):
+    type: Required[Literal["pdf"]]
+    pdf: NotionMediaBlockContent
+
+
+class NotionAudioBlock(BaseNotionBlock):
+    type: Required[Literal["audio"]]
+    audio: NotionMediaBlockContent
+
+
+class NotionBookmarkBlockContent(TypedDict):
+    url: str
+    caption: list[NotionRichText]
+
+
+class NotionBookmarkBlock(BaseNotionBlock):
+    type: Required[Literal["bookmark"]]
+    bookmark: NotionBookmarkBlockContent
+
+
+class NotionCalloutBlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    icon: NotionIcon
+    color: NotionColor
+
+
+class NotionCalloutBlock(BaseNotionBlock):
+    type: Required[Literal["callout"]]
+    callout: NotionCalloutBlockContent
+
+
+class NotionQuoteBlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+    color: NotionColor
+
+
+class NotionQuoteBlock(BaseNotionBlock):
+    type: Required[Literal["quote"]]
+    quote: NotionQuoteBlockContent
+
+
+class NotionEquationBlockContent(TypedDict):
+    expression: str
+
+
+class NotionEquationBlock(BaseNotionBlock):
+    type: Required[Literal["equation"]]
+    equation: NotionEquationBlockContent
+
+
+class NotionDividerBlock(BaseNotionBlock):
+    type: Required[Literal["divider"]]
+    divider: dict[str, Any]
+
+
+class NotionTableOfContentsBlockContent(TypedDict):
+    color: NotionColor
+
+
+class NotionTableOfContentsBlock(BaseNotionBlock):
+    type: Required[Literal["table_of_contents"]]
+    table_of_contents: NotionTableOfContentsBlockContent
+
+
+class NotionBreadcrumbBlock(BaseNotionBlock):
+    type: Required[Literal["breadcrumb"]]
+    breadcrumb: dict[str, Any]
+
+
+class NotionColumnListBlock(BaseNotionBlock):
+    type: Required[Literal["column_list"]]
+    column_list: dict[str, Any]
+
+
+class NotionColumnBlock(BaseNotionBlock):
+    type: Required[Literal["column"]]
+    column: dict[str, Any]
+
+
+class NotionLinkPreviewBlockContent(TypedDict):
+    url: str
+
+
+class NotionLinkPreviewBlock(BaseNotionBlock):
+    type: Required[Literal["link_preview"]]
+    link_preview: NotionLinkPreviewBlockContent
+
+
+class NotionSyncedFrom(TypedDict):
+    type: Literal["block_id"]
+    block_id: str
+
+
+class NotionSyncedBlockContent(TypedDict):
+    synced_from: NotionSyncedFrom | None
+
+
+class NotionSyncedBlock(BaseNotionBlock):
+    type: Required[Literal["synced_block"]]
+    synced_block: NotionSyncedBlockContent
+
+
+class NotionTemplateBlockContent(TypedDict):
+    rich_text: list[NotionRichText]
+
+
+class NotionTemplateBlock(BaseNotionBlock):
+    type: Required[Literal["template"]]
+    template: NotionTemplateBlockContent
+
+
+class NotionLinkToPageBlockContent(TypedDict, total=False):
+    type: Required[Literal["page_id", "database_id"]]
+    page_id: str
+    database_id: str
+
+
+class NotionLinkToPageBlock(BaseNotionBlock):
+    type: Required[Literal["link_to_page"]]
+    link_to_page: NotionLinkToPageBlockContent
+
+
+class NotionTableBlockContent(TypedDict):
+    table_width: int
+    has_column_header: bool
+    has_row_header: bool
+
+
+class NotionTableBlock(BaseNotionBlock):
+    type: Required[Literal["table"]]
+    table: NotionTableBlockContent
+
+
+class NotionTableRowBlockContent(TypedDict):
+    cells: list[list[NotionRichText]]
+
+
+class NotionTableRowBlock(BaseNotionBlock):
+    type: Required[Literal["table_row"]]
+    table_row: NotionTableRowBlockContent
+
+
+type NotionBlock = (
+        NotionParagraphBlock
+        | NotionHeading1Block
+        | NotionHeading2Block
+        | NotionHeading3Block
+        | NotionBulletedListItemBlock
+        | NotionNumberedListItemBlock
+        | NotionToDoBlock
+        | NotionToggleBlock
+        | NotionCodeBlock
+        | NotionChildPageBlock
+        | NotionChildDatabaseBlock
+        | NotionEmbedBlock
+        | NotionImageBlock
+        | NotionVideoBlock
+        | NotionFileBlock
+        | NotionPdfBlock
+        | NotionAudioBlock
+        | NotionBookmarkBlock
+        | NotionCalloutBlock
+        | NotionQuoteBlock
+        | NotionEquationBlock
+        | NotionDividerBlock
+        | NotionTableOfContentsBlock
+        | NotionBreadcrumbBlock
+        | NotionColumnListBlock
+        | NotionColumnBlock
+        | NotionLinkPreviewBlock
+        | NotionSyncedBlock
+        | NotionTemplateBlock
+        | NotionLinkToPageBlock
+        | NotionTableBlock
+        | NotionTableRowBlock
+)
