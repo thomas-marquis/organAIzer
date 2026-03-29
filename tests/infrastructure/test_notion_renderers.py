@@ -1,4 +1,6 @@
+import pytest
 from typing import Any
+from unittest.mock import AsyncMock
 
 from src.infrastructure.notion_renderers import NotionBlockRenderer
 
@@ -16,7 +18,8 @@ def _base_block(block_type: str) -> Any:
     }
 
 
-def test_render_paragraph_complex() -> None:
+@pytest.mark.asyncio
+async def test_render_paragraph_complex() -> None:
     # Given
     block: Any = {
         **_base_block("paragraph"),
@@ -44,15 +47,17 @@ def test_render_paragraph_complex() -> None:
             "color": "default"
         }
     }
+    renderer = NotionBlockRenderer("fake_key")
 
     # When
-    result = NotionBlockRenderer.render(block)
+    result = await renderer.render(block)
 
     # Then
     assert result == "Normal **bold**[link](https://example.com)"
 
 
-def test_render_headings() -> None:
+@pytest.mark.asyncio
+async def test_render_headings() -> None:
     h1: Any = {
         **_base_block("heading_1"),
         "heading_1": {"rich_text": [
@@ -72,12 +77,14 @@ def test_render_headings() -> None:
             "color": "default", "is_toggleable": False}
     }
 
-    assert NotionBlockRenderer.render(h1) == "# Title"
-    assert NotionBlockRenderer.render(h2) == "## Subtitle"
-    assert NotionBlockRenderer.render(h3) == "### Section"
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(h1) == "# Title"
+    assert await renderer.render(h2) == "## Subtitle"
+    assert await renderer.render(h3) == "### Section"
 
 
-def test_render_lists() -> None:
+@pytest.mark.asyncio
+async def test_render_lists() -> None:
     bullet: Any = {
         **_base_block("bulleted_list_item"),
         "bulleted_list_item": {"rich_text": [
@@ -91,11 +98,13 @@ def test_render_lists() -> None:
             "color": "default"}
     }
 
-    assert NotionBlockRenderer.render(bullet) == "- Item"
-    assert NotionBlockRenderer.render(numbered) == "1. Item"
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(bullet) == "- Item"
+    assert await renderer.render(numbered) == "1. Item"
 
 
-def test_render_todo() -> None:
+@pytest.mark.asyncio
+async def test_render_todo() -> None:
     todo_not_done: Any = {
         **_base_block("to_do"),
         "to_do": {"rich_text": [
@@ -109,11 +118,13 @@ def test_render_todo() -> None:
             "checked": True, "color": "default"}
     }
 
-    assert NotionBlockRenderer.render(todo_not_done) == "- [ ] Task"
-    assert NotionBlockRenderer.render(todo_done) == "- [x] Task"
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(todo_not_done) == "- [ ] Task"
+    assert await renderer.render(todo_done) == "- [x] Task"
 
 
-def test_render_code() -> None:
+@pytest.mark.asyncio
+async def test_render_code() -> None:
     code: Any = {
         **_base_block("code"),
         "code": {
@@ -124,10 +135,12 @@ def test_render_code() -> None:
             "caption": []
         }
     }
-    assert NotionBlockRenderer.render(code) == "```python\nprint('hello')\n```"
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(code) == "```python\nprint('hello')\n```"
 
 
-def test_render_quote_and_callout() -> None:
+@pytest.mark.asyncio
+async def test_render_quote_and_callout() -> None:
     quote: Any = {
         **_base_block("quote"),
         "quote": {"rich_text": [
@@ -144,11 +157,13 @@ def test_render_quote_and_callout() -> None:
         }
     }
 
-    assert NotionBlockRenderer.render(quote) == "> Quote"
-    assert NotionBlockRenderer.render(callout) == "> 💡 Note"
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(quote) == "> Quote"
+    assert await renderer.render(callout) == "> 💡 Note"
 
 
-def test_render_divider_and_bookmark() -> None:
+@pytest.mark.asyncio
+async def test_render_divider_and_bookmark() -> None:
     divider: Any = {**_base_block("divider"), "divider": {}}
     bookmark: Any = {
         **_base_block("bookmark"),
@@ -156,11 +171,13 @@ def test_render_divider_and_bookmark() -> None:
             {"type": "text", "text": {"content": "Example", "link": None}, "plain_text": "Example", "annotations": {}}]}
     }
 
-    assert NotionBlockRenderer.render(divider) == "---"
-    assert NotionBlockRenderer.render(bookmark) == "[Example](https://example.com)"
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(divider) == "---"
+    assert await renderer.render(bookmark) == "[Example](https://example.com)"
 
 
-def test_render_media() -> None:
+@pytest.mark.asyncio
+async def test_render_media() -> None:
     image: Any = {
         **_base_block("image"),
         "image": {
@@ -179,11 +196,13 @@ def test_render_media() -> None:
         }
     }
 
-    assert NotionBlockRenderer.render(image) == "![Caption](https://example.com/image.png)"
-    assert NotionBlockRenderer.render(video) == "[Video: https://example.com/video.mp4](https://example.com/video.mp4)"
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(image) == "![Caption](https://example.com/image.png)"
+    assert await renderer.render(video) == "[Video: https://example.com/video.mp4](https://example.com/video.mp4)"
 
 
-def test_render_table_row() -> None:
+@pytest.mark.asyncio
+async def test_render_table_row() -> None:
     row: Any = {
         **_base_block("table_row"),
         "table_row": {
@@ -193,10 +212,12 @@ def test_render_table_row() -> None:
             ]
         }
     }
-    assert NotionBlockRenderer.render(row) == "| A1 | B1 |"
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(row) == "| A1 | B1 |"
 
 
-def test_render_table() -> None:
+@pytest.mark.asyncio
+async def test_render_table_with_children() -> None:
     table: Any = {
         **_base_block("table"),
         "table": {
@@ -236,14 +257,56 @@ def test_render_table() -> None:
         "| Cell 1 | Cell 2 |"
     )
 
-    assert NotionBlockRenderer.render(table, children=rows) == expected
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(table, children=rows) == expected
 
 
-def test_render_others() -> None:
+@pytest.mark.asyncio
+async def test_render_table_fetching_children(mocker: Any) -> None:
+    table: Any = {
+        **_base_block("table"),
+        "id": "table_123",
+        "table": {
+            "table_width": 2,
+            "has_column_header": True,
+            "has_row_header": False
+        }
+    }
+    rows: list[Any] = [
+        {
+            **_base_block("table_row"),
+            "table_row": {
+                "cells": [
+                    [{"type": "text", "text": {"content": "A1", "link": None}, "plain_text": "A1", "annotations": {}}],
+                    [{"type": "text", "text": {"content": "B1", "link": None}, "plain_text": "B1", "annotations": {}}]
+                ]
+            }
+        }
+    ]
+
+    renderer = NotionBlockRenderer("fake_key")
+
+    # Mock the client call
+    mock_list = AsyncMock(return_value={"results": rows})
+    mocker.patch.object(renderer._client.blocks.children, "list", mock_list)
+
+    result = await renderer.render(table)
+
+    expected = (
+        "| A1 | B1 |\n"
+        "| --- | --- |"
+    )
+    assert result == expected
+    mock_list.assert_called_once_with(block_id="table_123")
+
+
+@pytest.mark.asyncio
+async def test_render_others() -> None:
     equation: Any = {**_base_block("equation"), "equation": {"expression": "E=mc^2"}}
     child_page: Any = {**_base_block("child_page"), "child_page": {"title": "Page"}}
     embed: Any = {**_base_block("embed"), "embed": {"url": "https://example.com"}}
 
-    assert NotionBlockRenderer.render(equation) == "$$E=mc^2$$"
-    assert NotionBlockRenderer.render(child_page) == "[[Page]]"
-    assert NotionBlockRenderer.render(embed) == "<https://example.com>"
+    renderer = NotionBlockRenderer("fake_key")
+    assert await renderer.render(equation) == "$$E=mc^2$$"
+    assert await renderer.render(child_page) == "[[Page]]"
+    assert await renderer.render(embed) == "<https://example.com>"
