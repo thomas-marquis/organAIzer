@@ -1,6 +1,8 @@
+from pathlib import Path
 from typing import Final, AsyncIterator
 
 from deepagents import create_deep_agent
+from deepagents.backends import FilesystemBackend
 from langchain.chat_models import BaseChatModel
 
 from src.domain import TasksService, TaskRepository, NoteRepository
@@ -17,12 +19,19 @@ Your primary goal is to help him to get more organized and efficient and to set 
 
 
 class GPAgent:
-    def __init__(self, llm: BaseChatModel, task_service: TasksService, task_repository: TaskRepository,
+    def __init__(self,
+                 llm: BaseChatModel,
+                 task_service: TasksService,
+                 task_repository: TaskRepository,
                  note_repository: NoteRepository) -> None:
         self._llm: Final = llm
         self._task_service: Final = task_service
         self._task_repository: Final = task_repository
         self._note_repository: Final = note_repository
+
+        agent_root_dir = Path(".aizer")
+        agent_root_dir.mkdir(exist_ok=True)
+
         self._agent: Final = create_deep_agent(
             model=self._llm,
             system_prompt=main_prompt,
@@ -32,14 +41,19 @@ class GPAgent:
                 search_notes,
                 get_note_content,
             ],
+            backend=FilesystemBackend(root_dir=agent_root_dir, virtual_mode=False),
         )
 
     async def run(self, message: str) -> AsyncIterator[str]:
-        async for evt in self._agent.astream({
-            "messages": [
-                {"role": "user", "content": message},
-            ],
-        }, context=ToolContext(task_service=self._task_service, task_repository=self._task_repository,
-                               note_repository=self._note_repository)):
+        async for evt in self._agent.astream(  # type: ignore[call-overload]
+                {
+                    "messages": [
+                        {"role": "user", "content": message},
+                    ],
+                },
+                context=ToolContext(task_service=self._task_service,
+                                    task_repository=self._task_repository,
+                                    note_repository=self._note_repository),
+                stream_mode="updates",
+        ):
             yield evt
-        # return res["messages"][-1].content
